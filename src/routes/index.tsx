@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ActionFeed } from "@/components/astrofarm/ActionFeed";
 import { AllocationTable } from "@/components/astrofarm/AllocationTable";
+import { CropCompositionPie } from "@/components/astrofarm/CropCompositionPie";
 import { EsmBreakdownChart } from "@/components/astrofarm/EsmBreakdownChart";
 import { EventsPanel } from "@/components/astrofarm/EventsPanel";
 import { ImplicationsPanel } from "@/components/astrofarm/ImplicationsPanel";
