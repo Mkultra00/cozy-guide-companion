@@ -13,6 +13,7 @@ import { StatusBar } from "@/components/astrofarm/StatusBar";
 import { SummaryCards } from "@/components/astrofarm/SummaryCards";
 import { latestPlan, snapshotQuery } from "@/lib/astrofarm/client";
 import { useNow } from "@/hooks/use-now";
+import astrochimp from "@/assets/astrochimp.jpg";
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(snapshotQuery),
@@ -52,10 +53,31 @@ function ConsolePage() {
 
   return (
     <main className="mx-auto max-w-[1600px] space-y-6 px-6 py-6">
+      <section className="panel relative overflow-hidden">
+        <img
+          src={astrochimp}
+          alt="Astrochimp — a chimpanzee in a NASA space suit tending cannabis plants aboard the orbital farm"
+          width={1536}
+          height={1024}
+          className="h-[clamp(260px,46vw,560px)] w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/55 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-6 sm:p-10">
+          <p className="label-caps">AstroFarm · crew avatar</p>
+          <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            Astrochimp at work
+          </h1>
+          <p className="max-w-2xl text-sm text-foreground/80 sm:text-base">
+            The orbital farm's resident crew member — a chimpanzee in a full EVA suit — tends the
+            cannabis crop under purple grow lights while the planning agent handles the math.
+          </p>
+        </div>
+      </section>
+
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">
+        <h2 className="text-2xl font-semibold text-foreground">
           Constrained crop planning under changing constraints
-        </h1>
+        </h2>
         <p className="max-w-3xl text-sm text-muted-foreground">
           An always-on agent watches mission reality, re-runs the deterministic ESM optimizer when
           something moves, and writes a versioned plan with a written rationale. Everything below is
