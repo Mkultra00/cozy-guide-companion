@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { ASSISTANT_SUGGESTIONS, askAgent, localAnswer } from "@/lib/astrofarm/assistant";
-import { AGENT_ENDPOINT } from "@/lib/astrofarm/client";
+import { useServerFn } from "@tanstack/react-start";
+import { ASSISTANT_SUGGESTIONS, localAnswer } from "@/lib/astrofarm/assistant";
+import { askFarm } from "@/lib/astrofarm/chat.functions";
+import { latestPlan } from "@/lib/astrofarm/client";
+import { buildPlanDigest } from "@/lib/astrofarm/digest";
 import type { ConsoleSnapshot } from "@/lib/astrofarm/types";
 
 interface Message {
