@@ -71,6 +71,8 @@ function ConsolePage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="space-y-6">
           <RationalePanel plan={plan} />
+          <ImplicationsPanel snapshot={snapshot} plan={plan} />
+
           <EsmBreakdownChart
             breakdown={plan.summary.esmBreakdown}
             totalEsm={plan.summary.esmKg}
