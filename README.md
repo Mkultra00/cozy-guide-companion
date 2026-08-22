@@ -1,6 +1,7 @@
-# Foundation Builder
+# AstroFarm
 
-use the following systems architecture document to build
+**Team:** Space Farmer
+**Members:** Shay, Ryan, Frank, Juan
 
 This project was built with [Lovable](https://lovable.dev).
 
