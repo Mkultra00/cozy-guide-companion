@@ -51,22 +51,26 @@ export function HabitatChat({
     ]);
     setThinking(true);
     try {
-      const answer = AGENT_ENDPOINT
-        ? await askAgent(AGENT_ENDPOINT, snapshot, text)
-        : await new Promise<{ text: string }>((resolve) =>
-            setTimeout(() => resolve(localAnswer(snapshot, text)), 420),
-          );
+      const plan = latestPlan(snapshot);
+      const answer = await ask({
+        data: {
+          question: text,
+          ...(plan ? { digest: buildPlanDigest(snapshot, plan) } : {}),
+        },
+      });
       setMessages((prev) => [
         ...prev,
         { id: `${Date.now()}-a`, role: "agent", text: answer.text },
       ]);
     } catch {
+      // Never show the crew a stack trace. Fall back to answering from the
+      // snapshot itself — every number there was written by the agent.
       setMessages((prev) => [
         ...prev,
         {
           id: `${Date.now()}-e`,
           role: "agent",
-          text: "I couldn't reach the local model just now. The numbers on this screen are still the agent's latest written state.",
+          text: localAnswer(snapshot, text).text,
         },
       ]);
     } finally {
