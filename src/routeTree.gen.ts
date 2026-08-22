@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BriefRouteImport } from './routes/brief'
+import { Route as HabitatRouteImport } from './routes/habitat'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as RuntimeRouteImport } from './routes/runtime'
 import { Route as PlansIndexRouteImport } from './routes/plans.index'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const BriefRoute = BriefRouteImport.update({
   id: '/brief',
   path: '/brief',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HabitatRoute = HabitatRouteImport.update({
+  id: '/habitat',
+  path: '/habitat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryRoute = LibraryRouteImport.update({
@@ -50,6 +56,7 @@ const PlansVersionRoute = PlansVersionRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/brief': typeof BriefRoute
+  '/habitat': typeof HabitatRoute
   '/library': typeof LibraryRoute
   '/runtime': typeof RuntimeRoute
   '/plans/$version': typeof PlansVersionRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/brief': typeof BriefRoute
+  '/habitat': typeof HabitatRoute
   '/library': typeof LibraryRoute
   '/runtime': typeof RuntimeRoute
   '/plans/$version': typeof PlansVersionRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/brief': typeof BriefRoute
+  '/habitat': typeof HabitatRoute
   '/library': typeof LibraryRoute
   '/runtime': typeof RuntimeRoute
   '/plans/$version': typeof PlansVersionRoute
@@ -75,13 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/brief' | '/library' | '/runtime' | '/plans/$version' | '/plans/'
+    | '/'
+    | '/brief'
+    | '/habitat'
+    | '/library'
+    | '/runtime'
+    | '/plans/$version'
+    | '/plans/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/brief' | '/library' | '/runtime' | '/plans/$version' | '/plans'
+  to:
+    | '/'
+    | '/brief'
+    | '/habitat'
+    | '/library'
+    | '/runtime'
+    | '/plans/$version'
+    | '/plans'
   id:
     | '__root__'
     | '/'
     | '/brief'
+    | '/habitat'
     | '/library'
     | '/runtime'
     | '/plans/$version'
@@ -91,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BriefRoute: typeof BriefRoute
+  HabitatRoute: typeof HabitatRoute
   LibraryRoute: typeof LibraryRoute
   RuntimeRoute: typeof RuntimeRoute
   PlansVersionRoute: typeof PlansVersionRoute
@@ -111,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/brief'
       fullPath: '/brief'
       preLoaderRoute: typeof BriefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/habitat': {
+      id: '/habitat'
+      path: '/habitat'
+      fullPath: '/habitat'
+      preLoaderRoute: typeof HabitatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library': {
@@ -147,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BriefRoute: BriefRoute,
+  HabitatRoute: HabitatRoute,
   LibraryRoute: LibraryRoute,
   RuntimeRoute: RuntimeRoute,
   PlansVersionRoute: PlansVersionRoute,
