@@ -31,6 +31,7 @@ export function HabitatChat({
   const [thinking, setThinking] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const ask = useServerFn(askFarm);
 
   useEffect(() => {
     inputRef.current?.focus();
