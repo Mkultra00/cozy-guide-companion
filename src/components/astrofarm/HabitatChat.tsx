@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { ASSISTANT_SUGGESTIONS, askAgent, localAnswer } from "@/lib/astrofarm/assistant";
-import { AGENT_ENDPOINT } from "@/lib/astrofarm/client";
+import { useServerFn } from "@tanstack/react-start";
+import { ASSISTANT_SUGGESTIONS, localAnswer } from "@/lib/astrofarm/assistant";
+import { askFarm } from "@/lib/astrofarm/chat.functions";
+import { latestPlan } from "@/lib/astrofarm/client";
+import { buildPlanDigest } from "@/lib/astrofarm/digest";
 import type { ConsoleSnapshot } from "@/lib/astrofarm/types";
 
 interface Message {
@@ -28,6 +31,7 @@ export function HabitatChat({
   const [thinking, setThinking] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const ask = useServerFn(askFarm);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -47,22 +51,26 @@ export function HabitatChat({
     ]);
     setThinking(true);
     try {
-      const answer = AGENT_ENDPOINT
-        ? await askAgent(AGENT_ENDPOINT, snapshot, text)
-        : await new Promise<{ text: string }>((resolve) =>
-            setTimeout(() => resolve(localAnswer(snapshot, text)), 420),
-          );
+      const plan = latestPlan(snapshot);
+      const answer = await ask({
+        data: {
+          question: text,
+          ...(plan ? { digest: buildPlanDigest(snapshot, plan) } : {}),
+        },
+      });
       setMessages((prev) => [
         ...prev,
         { id: `${Date.now()}-a`, role: "agent", text: answer.text },
       ]);
     } catch {
+      // Never show the crew a stack trace. Fall back to answering from the
+      // snapshot itself — every number there was written by the agent.
       setMessages((prev) => [
         ...prev,
         {
           id: `${Date.now()}-e`,
           role: "agent",
-          text: "I couldn't reach the local model just now. The numbers on this screen are still the agent's latest written state.",
+          text: localAnswer(snapshot, text).text,
         },
       ]);
     } finally {
@@ -77,9 +85,7 @@ export function HabitatChat({
         <span className="live-dot" aria-hidden />
         <div className="min-w-0">
           <p className="text-base font-semibold text-foreground">Ask the farm</p>
-          <p className="label-caps truncate">
-            {AGENT_ENDPOINT ? "local model · on-device" : "local model · offline recall"}
-          </p>
+          <p className="label-caps truncate">local model · on-device</p>
         </div>
       </header>
 
