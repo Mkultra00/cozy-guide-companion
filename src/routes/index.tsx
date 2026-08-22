@@ -4,7 +4,9 @@ import { ActionFeed } from "@/components/astrofarm/ActionFeed";
 import { AllocationTable } from "@/components/astrofarm/AllocationTable";
 import { EsmBreakdownChart } from "@/components/astrofarm/EsmBreakdownChart";
 import { EventsPanel } from "@/components/astrofarm/EventsPanel";
+import { ImplicationsPanel } from "@/components/astrofarm/ImplicationsPanel";
 import { OptimizerCurve } from "@/components/astrofarm/OptimizerCurve";
+
 import { RationalePanel } from "@/components/astrofarm/RationalePanel";
 import { StatusBar } from "@/components/astrofarm/StatusBar";
 import { SummaryCards } from "@/components/astrofarm/SummaryCards";
