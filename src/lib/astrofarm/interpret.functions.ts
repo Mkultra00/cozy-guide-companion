@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { callLocalModel, localModelConfigured } from "@/lib/astrofarm/localModel";
+
 const DigestSchema = z.object({
   digest: z.string().min(1).max(20_000),
 });
@@ -28,6 +30,19 @@ Return ONLY JSON matching:
 export const interpretSnapshot = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => DigestSchema.parse(input))
   .handler(async ({ data }): Promise<Interpretation> => {
+    // Local GB10 model first (Hackathon backend); cloud gateway only as fallback.
+    if (localModelConfigured()) {
+      const local = await callLocalModel({
+        json: true,
+        maxTokens: 1200,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: data.digest },
+        ],
+      });
+      return parseInterpretation(local);
+    }
+
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("AI is not configured (missing LOVABLE_API_KEY).");
 
@@ -65,7 +80,10 @@ export const interpretSnapshot = createServerFn({ method: "POST" })
     };
     const raw = payload.choices?.[0]?.message?.content?.trim() ?? "";
     if (!raw) throw new Error("The model returned an empty analysis.");
+    return parseInterpretation(raw);
+  });
 
+function parseInterpretation(raw: string): Interpretation {
     let parsed: unknown;
     try {
       parsed = JSON.parse(raw.replace(/^```(?:json)?/i, "").replace(/```$/, ""));
@@ -84,5 +102,5 @@ export const interpretSnapshot = createServerFn({ method: "POST" })
       watchItems: z.array(z.string()).default([]),
       confidence: z.enum(["low", "medium", "high"]).default("medium"),
     });
-    return shape.parse(parsed);
-  });
+  return shape.parse(parsed);
+}
