@@ -7,7 +7,10 @@ import type {
   Budgets,
   ConsoleSnapshot,
   ConstraintEvent,
+  CrewBriefing,
   Plan,
+  Tray,
+  TrayStatus,
   Weights,
 } from "./types";
 
@@ -332,6 +335,103 @@ export const FIXTURE_STATUS: AgentStatus = {
   egress: "none",
 };
 
+// ---------------------------------------------------------------------------
+// Crew tablet fixtures (/habitat). Twelve trays on the agent's seeded schedule.
+// ---------------------------------------------------------------------------
+
+const cropName = (key: string) => CROPS.find((c) => c.key === key)?.name ?? key;
+const daysAgoIso = (d: number) => new Date(EPOCH - d * 86_400_000).toISOString();
+
+interface TraySeed {
+  trayId: string;
+  cropKey: string;
+  areaM2: number;
+  daysRemaining: number;
+  status: TrayStatus;
+  expectedKg: number;
+  crewMinToday: number;
+  replantProposal?: Tray["replantProposal"];
+}
+
+const TRAY_SEEDS: TraySeed[] = [
+  { trayId: "T1", cropKey: "pak_choi", areaM2: 2.0, daysRemaining: -3, status: "overdue", expectedKg: 3.4, crewMinToday: 18 },
+  { trayId: "T2", cropKey: "radish", areaM2: 1.5, daysRemaining: 0, status: "ready", expectedKg: 2.1, crewMinToday: 14 },
+  { trayId: "T3", cropKey: "mizuna", areaM2: 2.0, daysRemaining: 2, status: "due_soon", expectedKg: 2.8, crewMinToday: 6 },
+  { trayId: "T6", cropKey: "microgreens", areaM2: 1.0, daysRemaining: 2, status: "due_soon", expectedKg: 0.9, crewMinToday: 5 },
+  { trayId: "T4", cropKey: "lettuce", areaM2: 2.5, daysRemaining: 9, status: "growing", expectedKg: 4.0, crewMinToday: 4 },
+  { trayId: "T5", cropKey: "kale", areaM2: 2.5, daysRemaining: 14, status: "growing", expectedKg: 4.6, crewMinToday: 4 },
+  { trayId: "T7", cropKey: "strawberry", areaM2: 2.0, daysRemaining: 21, status: "growing", expectedKg: 1.8, crewMinToday: 5 },
+  { trayId: "T8", cropKey: "tomato", areaM2: 3.0, daysRemaining: 33, status: "growing", expectedKg: 9.2, crewMinToday: 7 },
+  { trayId: "T9", cropKey: "pepper", areaM2: 2.0, daysRemaining: 41, status: "growing", expectedKg: 4.1, crewMinToday: 5 },
+  { trayId: "T10", cropKey: "soybean", areaM2: 4.0, daysRemaining: 56, status: "growing", expectedKg: 3.6, crewMinToday: 3 },
+  { trayId: "T11", cropKey: "wheat", areaM2: 5.0, daysRemaining: 64, status: "growing", expectedKg: 4.4, crewMinToday: 3 },
+  {
+    trayId: "T12",
+    cropKey: "sweet_potato",
+    areaM2: 5.0,
+    daysRemaining: -1,
+    status: "harvested",
+    expectedKg: 11.5,
+    crewMinToday: 0,
+    replantProposal: {
+      cropKey: "soybean",
+      cropName: cropName("soybean"),
+      areaM2: 5.0,
+      cycleDays: CROPS.find((c) => c.key === "soybean")?.cycleDays ?? 90,
+      reason:
+        "Plan v4 is short on protein after the power cut trimmed T10, and this tray is the only free 5 m² with the clearance soybean needs. Replanting sweet potato here would repeat a crop family you already carry twice.",
+      proposedAt: minsAgo(26),
+    },
+  },
+];
+
+export const FIXTURE_TRAYS: Tray[] = TRAY_SEEDS.map((seed) => {
+  const cycleDays = CROPS.find((c) => c.key === seed.cropKey)?.cycleDays ?? 30;
+  return {
+    trayId: seed.trayId,
+    cropKey: seed.cropKey,
+    cropName: cropName(seed.cropKey),
+    areaM2: seed.areaM2,
+    plantedOn: daysAgoIso(cycleDays - seed.daysRemaining),
+    cycleDays,
+    daysRemaining: seed.daysRemaining,
+    status: seed.status,
+    expectedKg: seed.expectedKg,
+    crewMinToday: seed.crewMinToday,
+    replantProposal: seed.replantProposal ?? null,
+  };
+});
+
+const LATEST_FIXTURE_PLAN = [...FIXTURE_PLANS].sort((a, b) => b.version - a.version)[0] ?? null;
+
+export const FIXTURE_CREW_BRIEFING: CrewBriefing = {
+  ts: minsAgo(4),
+  text: "Two trays need you this morning. T1 pak choi is three days past its cycle, so pick that one first before the heads start to bolt. T2 radish came due today and will only take you a few minutes once the pak choi is out of the way. After that you are clear until Thursday, when T3 mizuna and T6 microgreens both come ready together. Budget about an hour of tending across the eleven active trays today, and keep an eye on T8 tomato — it is the fussiest thing in the rack and it is the one the plan leans on for variety.",
+  facts: {
+    readyNow: [
+      { tray: "T1", crop: cropName("pak_choi"), kg: 3.4, daysLate: 3 },
+      { tray: "T2", crop: cropName("radish"), kg: 2.1, daysLate: 0 },
+    ],
+    dueWithin3Days: [
+      { tray: "T3", crop: cropName("mizuna"), inDays: 2 },
+      { tray: "T6", crop: cropName("microgreens"), inDays: 2 },
+    ],
+    crewMinutesToday: TRAY_SEEDS.reduce((sum, t) => sum + t.crewMinToday, 0),
+    traysActive: TRAY_SEEDS.filter((t) => t.status !== "harvested").length,
+    highestRiskTray: {
+      tray: "T8",
+      crop: cropName("tomato"),
+      risk: CROPS.find((c) => c.key === "tomato")?.riskScore ?? 0,
+    },
+    planVersion: LATEST_FIXTURE_PLAN?.version ?? null,
+    bindingConstraint: LATEST_FIXTURE_PLAN?.diffFromPrevious?.bindingConstraint ?? "area",
+    kcalCoveragePct: LATEST_FIXTURE_PLAN
+      ? Math.round(LATEST_FIXTURE_PLAN.summary.kcalCoverage * 100)
+      : null,
+    lastPlanChange: LATEST_FIXTURE_PLAN?.ts ?? null,
+  },
+};
+
 export const FIXTURE_SNAPSHOT: ConsoleSnapshot = {
   status: FIXTURE_STATUS,
   crops: CROPS,
@@ -339,4 +439,6 @@ export const FIXTURE_SNAPSHOT: ConsoleSnapshot = {
   plans: FIXTURE_PLANS,
   events: FIXTURE_EVENTS,
   log: FIXTURE_LOG,
+  trays: FIXTURE_TRAYS,
+  crewBriefing: FIXTURE_CREW_BRIEFING,
 };
