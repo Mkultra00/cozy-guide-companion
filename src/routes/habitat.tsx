@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AGENT_ENDPOINT, snapshotQuery } from "@/lib/astrofarm/client";
+import { HabitatChat } from "@/components/astrofarm/HabitatChat";
 import { relativeTime } from "@/lib/astrofarm/format";
 import type { CrewBriefing, Tray, TrayStatus } from "@/lib/astrofarm/types";
 import { useNow } from "@/hooks/use-now";
@@ -83,58 +84,43 @@ function HabitatPage() {
   const traysActive = briefing?.facts.traysActive ?? active.length;
   const kcalPct = briefing?.facts.kcalCoveragePct ?? null;
 
+  const readyCount = actionable.length;
+
   return (
     <TooltipProvider delayDuration={100}>
-      <main className="mx-auto max-w-3xl space-y-8 px-5 py-8 pb-16">
-        <h1 className="text-3xl font-semibold text-foreground">Habitat</h1>
+      <main className="mx-auto max-w-[1500px] space-y-6 px-5 py-6 pb-16">
+        {/* Dashboard header */}
+        <header className="panel grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 sm:flex sm:flex-wrap sm:justify-between">
+          <div className="min-w-0">
+            <p className="label-caps">Crew tablet</p>
+            <h1 className="truncate text-2xl font-semibold text-foreground sm:text-3xl">
+              Habitat farm
+            </h1>
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2">
+            <div>
+              <p className="label-caps">Plan</p>
+              <p className="metric text-sm text-foreground">
+                {briefing?.facts.planVersion ? `v${briefing.facts.planVersion}` : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="label-caps">Briefing</p>
+              <p className="metric text-sm text-foreground">
+                {briefing ? relativeTime(briefing.ts, now) : "—"}
+              </p>
+            </div>
+            <span className="live-dot" aria-hidden />
+          </div>
+        </header>
 
-        {/* 1. Briefing */}
-        {briefing ? <Briefing briefing={briefing} now={now} /> : null}
-
-        {/* 2. Action row */}
-        <section className="space-y-4">
-          {actionable.length === 0 ? (
-            <p className="text-lg text-muted-foreground">Nothing to pick today.</p>
-          ) : (
-            actionable.map((tray) => (
-              <ActionCard
-                key={tray.trayId}
-                tray={tray}
-                connected={Boolean(AGENT_ENDPOINT)}
-                pending={harvest.isPending && harvest.variables === tray.trayId}
-                onHarvest={() => harvest.mutate(tray.trayId)}
-              />
-            ))
-          )}
-        </section>
-
-        {/* 2b. Pending replant proposals — the agent asking, not telling */}
-        {proposals.length > 0 ? (
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Waiting on you</h2>
-            {proposals.map((tray) => (
-              <ProposalCard
-                key={tray.trayId}
-                tray={tray}
-                now={now}
-                connected={Boolean(AGENT_ENDPOINT)}
-                pending={replant.isPending && replant.variables === tray.trayId}
-                onPlant={() => replant.mutate(tray.trayId)}
-                onDismiss={() => setDismissed((prev) => [...prev, tray.trayId])}
-              />
-            ))}
-          </section>
-        ) : null}
-
-        {/* 3. Tray grid */}
-        <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {[...active, ...harvested].map((tray) => (
-            <TrayTile key={tray.trayId} tray={tray} />
-          ))}
-        </section>
-
-        {/* 4. Today strip */}
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {/* Glance strip */}
+        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stat
+            value={`${readyCount}`}
+            label={readyCount === 1 ? "tray to pick" : "trays to pick"}
+            tone={readyCount > 0 ? "accent" : "flat"}
+          />
           <Stat value={`${crewMinutesToday} min`} label="of tending today" />
           <Stat value={`${traysActive}`} label="trays active" />
           <Stat
@@ -142,6 +128,65 @@ function HabitatPage() {
             label="of crew calories"
           />
         </section>
+
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="space-y-6">
+            {/* 1. Briefing */}
+            {briefing ? <Briefing briefing={briefing} now={now} /> : null}
+
+            {/* 2. Action row */}
+            <section className="space-y-4">
+              <h2 className="label-caps">Pick today</h2>
+              {actionable.length === 0 ? (
+                <p className="text-lg text-muted-foreground">Nothing to pick today.</p>
+              ) : (
+                actionable.map((tray) => (
+                  <ActionCard
+                    key={tray.trayId}
+                    tray={tray}
+                    connected={Boolean(AGENT_ENDPOINT)}
+                    pending={harvest.isPending && harvest.variables === tray.trayId}
+                    onHarvest={() => harvest.mutate(tray.trayId)}
+                  />
+                ))
+              )}
+            </section>
+
+            {/* 2b. Pending replant proposals — the agent asking, not telling */}
+            {proposals.length > 0 ? (
+              <section className="space-y-4">
+                <h2 className="label-caps">Waiting on you</h2>
+                {proposals.map((tray) => (
+                  <ProposalCard
+                    key={tray.trayId}
+                    tray={tray}
+                    now={now}
+                    connected={Boolean(AGENT_ENDPOINT)}
+                    pending={replant.isPending && replant.variables === tray.trayId}
+                    onPlant={() => replant.mutate(tray.trayId)}
+                    onDismiss={() => setDismissed((prev) => [...prev, tray.trayId])}
+                  />
+                ))}
+              </section>
+            ) : null}
+
+            {/* 3. Tray grid */}
+            <section className="space-y-3">
+              <h2 className="label-caps">Trays</h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {[...active, ...harvested].map((tray) => (
+                  <TrayTile key={tray.trayId} tray={tray} />
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* 4. Talk to the local model */}
+          <HabitatChat
+            snapshot={snapshot}
+            className="h-[640px] xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)]"
+          />
+        </div>
 
         {/* 5. Footer link */}
         <Link to="/" className="block text-sm text-muted-foreground hover:text-foreground">
@@ -151,6 +196,7 @@ function HabitatPage() {
     </TooltipProvider>
   );
 }
+
 
 function Briefing({ briefing, now }: { briefing: CrewBriefing; now: number }) {
   const offline = briefing.text.startsWith("[local model unavailable");
@@ -345,10 +391,25 @@ function TrayTile({ tray }: { tray: Tray }) {
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({
+  value,
+  label,
+  tone = "flat",
+}: {
+  value: string;
+  label: string;
+  tone?: "flat" | "accent";
+}) {
   return (
     <div className="panel px-5 py-5">
-      <p className="metric text-3xl font-semibold text-foreground">{value}</p>
+      <p
+        className={cn(
+          "metric text-3xl font-semibold",
+          tone === "accent" ? "text-accent" : "text-foreground",
+        )}
+      >
+        {value}
+      </p>
       <p className="mt-1 text-sm text-muted-foreground">{label}</p>
     </div>
   );
