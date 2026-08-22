@@ -13,6 +13,7 @@ import { StatusBar } from "@/components/astrofarm/StatusBar";
 import { SummaryCards } from "@/components/astrofarm/SummaryCards";
 import { latestPlan, snapshotQuery } from "@/lib/astrofarm/client";
 import { useNow } from "@/hooks/use-now";
+import astrochimp from "@/assets/astrochimp.jpg";
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(snapshotQuery),
