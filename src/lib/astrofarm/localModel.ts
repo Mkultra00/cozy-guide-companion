@@ -49,7 +49,7 @@ export async function callLocalModel(options: LocalModelOptions): Promise<string
 
   const response = await fetch(`${baseUrl}/v1/chat/completions`, {
     method: "POST",
-    signal: options.signal,
+    signal: options.signal ?? null,
     headers: {
       "Content-Type": "application/json",
       ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
