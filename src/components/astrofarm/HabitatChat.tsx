@@ -85,9 +85,7 @@ export function HabitatChat({
         <span className="live-dot" aria-hidden />
         <div className="min-w-0">
           <p className="text-base font-semibold text-foreground">Ask the farm</p>
-          <p className="label-caps truncate">
-            {AGENT_ENDPOINT ? "local model · on-device" : "local model · offline recall"}
-          </p>
+          <p className="label-caps truncate">local model · on-device</p>
         </div>
       </header>
 
