@@ -76,10 +76,13 @@ function ConsolePage() {
           <RationalePanel plan={plan} />
           <ImplicationsPanel snapshot={snapshot} plan={plan} />
 
-          <EsmBreakdownChart
-            breakdown={plan.summary.esmBreakdown}
-            totalEsm={plan.summary.esmKg}
-          />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <EsmBreakdownChart
+              breakdown={plan.summary.esmBreakdown}
+              totalEsm={plan.summary.esmKg}
+            />
+            <CropCompositionPie plan={plan} />
+          </div>
           <AllocationTable plan={plan} />
           <div className="grid gap-6 lg:grid-cols-2">
             <OptimizerCurve plan={plan} />
