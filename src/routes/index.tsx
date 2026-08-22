@@ -65,11 +65,11 @@ function ConsolePage() {
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-6 sm:p-10">
           <p className="label-caps">AstroFarm · crew avatar</p>
           <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            Astrochimp at work
+            AstroFarm
           </h1>
           <p className="max-w-2xl text-sm text-foreground/80 sm:text-base">
-            The orbital farm's resident crew member — a chimpanzee in a full EVA suit — tends the
-            cannabis crop under purple grow lights while the planning agent handles the math.
+            The orbital farm's resident crew member — a cute chimpanzee in a full EVA suit — proudly
+            holds up a cannabis plant while the planning agent handles the math.
           </p>
         </div>
       </section>
