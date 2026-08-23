@@ -9,6 +9,10 @@
 
 [Watch the 7-minute demo on YouTube](https://youtu.be/mdF-Jpyh81Y)
 
+## Business case
+
+[AstroFarm Business Case (PDF)](https://drive.google.com/file/d/1e8EDRs7n40LkmHxKxd-KTe5vNBB9vPWY/view?usp=sharing)
+
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
