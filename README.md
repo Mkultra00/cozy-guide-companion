@@ -1,7 +1,13 @@
 # AstroFarm
 
+![Team Space Farmer](https://cozy-guide-companion.lovable.app/__l5e/assets-v1/273da8ae-abb3-4278-9ad5-5bba47ae9146/team-space-farmer.jpeg)
+
 **Team:** Space Farmer
 **Members:** Shay, Ryan, Frank, Juan
+
+## 7-minute demo
+
+[Watch the 7-minute demo on YouTube](https://youtu.be/mdF-Jpyh81Y)
 
 This project was built with [Lovable](https://lovable.dev).
 
