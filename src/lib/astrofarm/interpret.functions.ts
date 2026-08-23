@@ -40,10 +40,8 @@ export const interpretSnapshot = createServerFn({ method: "POST" })
     const gateway = createLovableAiGatewayProvider(apiKey);
     const result = streamText({
       model: gateway("google/gemini-3.7-flash"),
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: data.digest },
-      ],
+      system: SYSTEM_PROMPT,
+      prompt: data.digest,
     });
 
     let raw: string;
