@@ -1,5 +1,7 @@
+import { streamText } from "ai";
 import { createServerFn } from "@tanstack/react-start";
 
+import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import {
   DigestSchema,
   SYSTEM_PROMPT,
@@ -13,7 +15,7 @@ export type { Interpretation };
 export const interpretSnapshot = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => DigestSchema.parse(input))
   .handler(async ({ data }): Promise<Interpretation> => {
-    // Local GB10 model first (Hackathon backend); cloud gateway only as fallback.
+    // Local GB10 model first (Hackathon backend); Lovable AI Gateway only as fallback.
     if (localModelConfigured()) {
       const local = await callLocalModel({
         json: true,
@@ -29,43 +31,35 @@ export const interpretSnapshot = createServerFn({ method: "POST" })
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) {
       throw new Error(
-        "No inference backend configured. Set MODEL_API_URL to the GB10 local model.",
+        "No inference backend configured. Set MODEL_API_URL to the GB10 local model, or add LOVABLE_API_KEY for Lovable AI.",
       );
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": apiKey,
-        "X-Lovable-AIG-SDK": "fetch",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: data.digest },
-        ],
-      }),
+    // Stream the gateway call (reasoning-capable Gemini can run long) and consume
+    // server-side — a buffered call would be severed by the host after ~2 minutes.
+    const gateway = createLovableAiGatewayProvider(apiKey);
+    const result = streamText({
+      model: gateway("google/gemini-3.7-flash"),
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: data.digest },
+      ],
     });
 
-    if (!response.ok) {
-      const body = await response.text();
-      console.error(`AI gateway failed [${response.status}]: ${body}`);
-      if (response.status === 429) {
-        throw new Error("Analysis rate limited — wait a moment and run it again.");
-      }
-      if (response.status === 402) {
+    let raw: string;
+    try {
+      raw = await result.text;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/402|credits/i.test(message)) {
         throw new Error("AI credits exhausted for this workspace. Add credits to continue.");
       }
-      throw new Error(`Analysis failed [${response.status}]: ${body.slice(0, 300)}`);
+      if (/429|rate limit/i.test(message)) {
+        throw new Error("Analysis rate limited — wait a moment and run it again.");
+      }
+      throw new Error(`Analysis failed: ${message}`);
     }
 
-    const payload = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const raw = payload.choices?.[0]?.message?.content?.trim() ?? "";
-    if (!raw) throw new Error("The model returned an empty analysis.");
+    if (!raw.trim()) throw new Error("The model returned an empty analysis.");
     return parseInterpretation(raw);
   });
