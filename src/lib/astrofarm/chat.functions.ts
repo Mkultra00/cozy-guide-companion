@@ -1,7 +1,9 @@
+import { streamText } from "ai";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { callLocalModel } from "@/lib/astrofarm/localModel";
+import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { callLocalModel, localModelConfigured } from "@/lib/astrofarm/localModel";
 
 const AskSchema = z.object({
   question: z.string().min(1).max(4_000),
@@ -22,10 +24,9 @@ If the question is not about the farm, just answer it normally and briefly.
 Plain spoken prose. No markdown, no headings, no bullet points.`;
 
 /**
- * Answer a crew question using the local model on the GB10.
- *
- * Runs on the server: a direct browser fetch to the model host is blocked by
- * its CORS preflight, and this keeps the API key out of the client bundle.
+ * Answer a crew question. Tries the local GB10 model first, then falls back to
+ * the Lovable AI Gateway. Runs on the server so the model host's CORS preflight
+ * and the API key stay out of the client bundle.
  */
 export const askFarm = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => AskSchema.parse(input))
@@ -38,6 +39,27 @@ export const askFarm = createServerFn({ method: "POST" })
       { role: "user" as const, content: data.question },
     ];
 
-    const text = await callLocalModel({ messages, maxTokens: 800 });
+    // Local GB10 model first (Hackathon backend).
+    if (localModelConfigured()) {
+      const text = await callLocalModel({ messages, maxTokens: 800 });
+      return { text };
+    }
+
+    // Lovable AI Gateway fallback.
+    const apiKey = process.env["LOVABLE_API_KEY"];
+    if (!apiKey) {
+      throw new Error(
+        "No inference backend configured. Set MODEL_API_URL to the GB10 local model, or add LOVABLE_API_KEY for Lovable AI.",
+      );
+    }
+
+    const gateway = createLovableAiGatewayProvider(apiKey);
+    const result = streamText({
+      model: gateway("google/gemini-3.7-flash"),
+      messages,
+    });
+
+    const text = await result.text;
+    if (!text.trim()) throw new Error("The model returned an empty answer.");
     return { text };
   });
