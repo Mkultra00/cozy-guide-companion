@@ -13,6 +13,10 @@
 
 [AstroFarm Business Case (PDF)](https://drive.google.com/file/d/1e8EDRs7n40LkmHxKxd-KTe5vNBB9vPWY/view?usp=sharing)
 
+## Live site
+
+[Live AstroFarm app](https://cozy-guide-companion.lovable.app/)
+
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
