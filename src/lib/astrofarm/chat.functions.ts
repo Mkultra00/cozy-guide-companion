@@ -31,17 +31,22 @@ Plain spoken prose. No markdown, no headings, no bullet points.`;
 export const askFarm = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => AskSchema.parse(input))
   .handler(async ({ data }): Promise<{ text: string }> => {
-    const messages = [
-      { role: "system" as const, content: SYSTEM_PROMPT },
-      ...(data.digest
-        ? [{ role: "system" as const, content: `Current farm state:\n${data.digest}` }]
-        : []),
-      { role: "user" as const, content: data.question },
-    ];
+    // Combine the system prompt and (optional) farm-state digest into the
+    // `system` option — the AI SDK rejects role:"system" messages in `messages`.
+    const system = [
+      SYSTEM_PROMPT,
+      ...(data.digest ? [`\n\nCurrent farm state:\n${data.digest}`] : []),
+    ].join("");
 
     // Local GB10 model first (Hackathon backend).
     if (localModelConfigured()) {
-      const text = await callLocalModel({ messages, maxTokens: 800 });
+      const text = await callLocalModel({
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: data.question },
+        ],
+        maxTokens: 800,
+      });
       return { text };
     }
 
@@ -56,7 +61,8 @@ export const askFarm = createServerFn({ method: "POST" })
     const gateway = createLovableAiGatewayProvider(apiKey);
     const result = streamText({
       model: gateway("google/gemini-3.7-flash"),
-      messages,
+      system,
+      prompt: data.question,
     });
 
     const text = await result.text;
