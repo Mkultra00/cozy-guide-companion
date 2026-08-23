@@ -14,6 +14,7 @@ import { SummaryCards } from "@/components/astrofarm/SummaryCards";
 import { latestPlan, snapshotQuery } from "@/lib/astrofarm/client";
 import { useNow } from "@/hooks/use-now";
 import astrochimp from "@/assets/astrochimp.jpg";
+import consoleGuideAsset from "@/assets/astrofarm-console-guide.html.asset.json";
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(snapshotQuery),
@@ -71,6 +72,14 @@ function ConsolePage() {
             The orbital farm's resident crew member — a cute chimpanzee in a full EVA suit — proudly
             holds up a cannabis plant while the planning agent handles the math.
           </p>
+          <a
+            href={consoleGuideAsset.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 inline-flex w-fit items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition-colors hover:bg-primary/90"
+          >
+            AstroFarm Guide
+          </a>
         </div>
       </section>
 
