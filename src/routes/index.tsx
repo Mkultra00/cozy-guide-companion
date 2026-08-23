@@ -14,6 +14,7 @@ import { SummaryCards } from "@/components/astrofarm/SummaryCards";
 import { latestPlan, snapshotQuery } from "@/lib/astrofarm/client";
 import { useNow } from "@/hooks/use-now";
 import astrochimp from "@/assets/astrochimp.jpg";
+import consoleGuideAsset from "@/assets/astrofarm-console-guide.html.asset.json";
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(snapshotQuery),
