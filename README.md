@@ -13,6 +13,10 @@
 
 [AstroFarm Business Case (PDF)](https://drive.google.com/file/d/1e8EDRs7n40LkmHxKxd-KTe5vNBB9vPWY/view?usp=sharing)
 
+## Console guide
+
+[AstroFarm Console Guide](https://cozy-guide-companion.lovable.app/__l5e/assets-v1/1ef7ff08-f4a3-45a4-9b5a-837552750bd8/AstroFarm-Console-Guide.html) — an annotated walkthrough of the console: what each panel shows, why it matters, and the vocabulary it assumes you know.
+
 ## Live site
 
 [Live AstroFarm app](https://cozy-guide-companion.lovable.app/)
